@@ -126,7 +126,7 @@ exports.register = async (req, res) => {
 // Login User
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -155,6 +155,44 @@ exports.login = async (req, res) => {
         success: false,
         message: "Invalid email or password",
       });
+    }
+
+    // Role-based Authorization: Ensure credentials match the selected role
+    if (role) {
+      const selectedRole = String(role).toLowerCase().trim();
+      const actualRole = (user.role || "patient").toLowerCase().trim();
+
+      const isSelectedPatient = selectedRole === "patient" || selectedRole === "user";
+      const isSelectedDoctor = selectedRole === "doctor" || selectedRole === "doctor/hospital";
+      const isSelectedAdmin = selectedRole === "admin";
+
+      const isActualPatient = actualRole === "patient" || actualRole === "user";
+      const isActualDoctor = actualRole === "doctor" || actualRole === "doctor/hospital";
+      const isActualAdmin = actualRole === "admin";
+
+      // If user selected "patient" but credentials belong to a Doctor/Hospital
+      if (isSelectedPatient && !isActualPatient) {
+        return res.status(403).json({
+          success: false,
+          message: `Access Denied: You selected 'Patient', but these credentials belong to a registered ${isActualDoctor ? "Doctor / Hospital" : actualRole} account. You do not have authority to log in as a Patient with Doctor credentials. Please select 'Doctor / Hospital' role to log in.`,
+        });
+      }
+
+      // If user selected "doctor/hospital" but credentials belong to a Patient
+      if (isSelectedDoctor && !isActualDoctor) {
+        return res.status(403).json({
+          success: false,
+          message: `Access Denied: You selected 'Doctor / Hospital', but these credentials belong to a registered Patient account. You do not have authority to log in as a Doctor with Patient credentials. Please select 'Patient' role to log in.`,
+        });
+      }
+
+      // If user selected "admin" but account is not Admin
+      if (isSelectedAdmin && !isActualAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: `Access Denied: You do not have administrator authority to log in with these credentials.`,
+        });
+      }
     }
 
     // Generate JWT
