@@ -50,6 +50,7 @@ exports.getAllDoctors = async (req, res) => {
       success: true,
       count: doctors.length,
       doctors,
+      data: doctors,
     });
   } catch (error) {
     return res.status(500).json({
