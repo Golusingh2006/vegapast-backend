@@ -56,6 +56,9 @@ app.use(cookieParser());
 const providerRoutes = require("./routes/providerRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
+const hospitalRoutes = require("./routes/hospitalRoutes");
+const patientReviewRoutes = require("./routes/patientReviewRoutes");
+const specialityRoutes = require("./routes/specialityRoutes");
 
 // Mounted at both /api/auth and /api for seamless frontend matching
 app.use("/api/auth", authRoutes);
@@ -63,6 +66,10 @@ app.use("/api/provider", providerRoutes);
 app.use("/api/doctor-hospital", providerRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/hospitals", hospitalRoutes);
+app.use("/api/patient-reviews", patientReviewRoutes);
+app.use("/api/blogs", patientReviewRoutes);
+app.use("/api/specialities", specialityRoutes);
 app.use("/api", authRoutes);
 
 // Health check endpoint
