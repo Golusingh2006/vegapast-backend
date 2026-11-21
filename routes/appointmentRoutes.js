@@ -11,7 +11,7 @@ const { protect, authorize } = require("../middleware/auth");
 
 router.use(protect);
 
-router.post("/", authorize("patient", "user", "admin"), createAppointment);
+router.post("/", authorize("patient", "user"), createAppointment);
 router.get("/my", getMyAppointments);
 router.get("/doctor", getDoctorAppointments);
 router.put("/:id/cancel", cancelAppointment);
