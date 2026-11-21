@@ -110,3 +110,62 @@ exports.cancelAppointment = async (req, res) => {
     });
   }
 };
+
+// Get all appointments assigned to the logged-in doctor
+exports.getDoctorAppointments = async (req, res) => {
+  try {
+    const doctorName = req.user.name || "";
+    const cleanName = doctorName.replace(/^Dr\.\s*/i, "").trim();
+
+    // Query appointments where doctor name matches or patient booked this doctor
+    const appointments = await Appointment.find({
+      $or: [
+        { doctorName: new RegExp(cleanName, "i") },
+        { doctor: req.user._id || req.user.id },
+      ],
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: appointments.length,
+      appointments,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch doctor appointments",
+    });
+  }
+};
+
+// Update appointment status by doctor (e.g. In-Progress, Completed, Cancelled)
+exports.updateAppointmentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Appointment status updated to ${status}`,
+      appointment,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update appointment status",
+    });
+  }
+};
