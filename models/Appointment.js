@@ -22,6 +22,15 @@ const appointmentSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    doctor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "openSchema",
+    },
+    doctorId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     doctorName: {
       type: String,
       required: [true, "Doctor name is required"],
@@ -60,6 +69,14 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["Confirmed", "Scheduled", "In-Progress", "Completed", "Cancelled"],
       default: "Confirmed",
     },
+    cancelledBy: {
+      type: String,
+      enum: ["patient", "doctor", "hospital", ""],
+      default: "",
+    },
+    completedAt: {
+      type: Date,
+    },
     bookingId: {
       type: String,
       unique: true,
@@ -72,5 +89,6 @@ const appointmentSchema = new mongoose.Schema(
 );
 
 appointmentSchema.index({ patient: 1, createdAt: -1 });
+appointmentSchema.index({ doctorName: 1, appointmentDate: 1, appointmentTime: 1, status: 1 });
 
 module.exports = mongoose.model("Appointment", appointmentSchema);

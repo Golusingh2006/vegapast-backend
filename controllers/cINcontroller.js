@@ -1,4 +1,6 @@
 const User = require("../models/OpenScheema");
+const Doctor = require("../models/Doctor");
+const Hospital = require("../models/Hospital");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -89,6 +91,56 @@ exports.register = async (req, res) => {
       password: hashPassword,
       role: role || "patient",
     });
+
+    // If registered as doctor or hospital, auto-create initial profile for patient discovery
+    if (role === "doctor") {
+      const slug = `dr-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${user._id.toString().slice(-4)}`;
+      await Doctor.findOneAndUpdate(
+        { email: normalizedEmail },
+        {
+          id: slug,
+          name: name.startsWith("Dr.") ? name.trim() : `Dr. ${name.trim()}`,
+          position: "Consultant Specialist",
+          speciality: "General Physician",
+          allSpecialities: ["General Physician"],
+          experience: "5+ Years",
+          experienceYears: 5,
+          consultationFee: "₹800",
+          feeAmount: 800,
+          rating: 4.8,
+          reviewsCount: 10,
+          hospital: "Care in India Medical Centre",
+          hospitalName: "Care in India Medical Centre",
+          clinicAddress: "Medical Enclave, New Delhi",
+          city: "New Delhi",
+          email: normalizedEmail,
+          phone: cleanContact,
+          verified: true,
+          user: user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).catch((e) => console.warn("Initial doctor record notice:", e.message));
+    } else if (role === "doctor/hospital") {
+      const slug = `hosp-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${user._id.toString().slice(-4)}`;
+      await Hospital.findOneAndUpdate(
+        { email: normalizedEmail },
+        {
+          id: slug,
+          name: name.trim(),
+          shortName: name.trim(),
+          group: name.trim(),
+          city: "New Delhi",
+          address: "Healthcare Hub, New Delhi",
+          phone: cleanContact,
+          email: normalizedEmail,
+          rating: 4.8,
+          timings: "24x7 Emergency & OPD",
+          specialities: ["General Medicine", "Emergency and Trauma"],
+          user: user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).catch((e) => console.warn("Initial hospital record notice:", e.message));
+    }
 
     // Generate token
     const token = generateToken(user._id);
