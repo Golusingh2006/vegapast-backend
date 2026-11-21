@@ -157,6 +157,28 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Role-based validation if role was chosen on login
+    const requestedRole = (req.body.role || "").toLowerCase().trim();
+    if (requestedRole) {
+      const actualRole = (user.role || "patient").toLowerCase().trim();
+      const isDoctorReq = requestedRole === "doctor" || requestedRole === "doctor/hospital";
+      const isDoctorActual = actualRole === "doctor" || actualRole === "doctor/hospital";
+
+      if (isDoctorReq && !isDoctorActual) {
+        return res.status(403).json({
+          success: false,
+          message: "This account is registered as a Patient. Please select 'Patient' role to sign in.",
+        });
+      }
+
+      if (!isDoctorReq && isDoctorActual && requestedRole !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "This account is registered as a Doctor/Hospital. Please select 'Doctor / Hospital' role to sign in.",
+        });
+      }
+    }
+
     // Generate JWT
     const token = generateToken(user._id);
 
