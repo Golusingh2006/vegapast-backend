@@ -5,6 +5,7 @@ const {
   login,
   logout,
   getMe,
+  updateProfile,
 } = require("../controllers/cINcontroller");
 const { protect, authorize } = require("../middleware/auth");
 
@@ -15,6 +16,10 @@ router.post("/logout", logout);
 
 // Protected routes (any logged-in user)
 router.get("/me", protect, getMe);
+router.get("/user/profile", protect, getMe);
+router.get("/profile", protect, getMe);
+router.put("/user/profile", protect, updateProfile);
+router.put("/profile", protect, updateProfile);
 
 // Role-protected routes (demonstrating role-based authorization)
 router.get(

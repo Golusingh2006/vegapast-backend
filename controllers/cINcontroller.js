@@ -157,28 +157,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Role-based validation if role was chosen on login
-    const requestedRole = (req.body.role || "").toLowerCase().trim();
-    if (requestedRole) {
-      const actualRole = (user.role || "patient").toLowerCase().trim();
-      const isDoctorReq = requestedRole === "doctor" || requestedRole === "doctor/hospital";
-      const isDoctorActual = actualRole === "doctor" || actualRole === "doctor/hospital";
-
-      if (isDoctorReq && !isDoctorActual) {
-        return res.status(403).json({
-          success: false,
-          message: "This account is registered as a Patient. Please select 'Patient' role to sign in.",
-        });
-      }
-
-      if (!isDoctorReq && isDoctorActual && requestedRole !== "admin") {
-        return res.status(403).json({
-          success: false,
-          message: "This account is registered as a Doctor/Hospital. Please select 'Doctor / Hospital' role to sign in.",
-        });
-      }
-    }
-
     // Generate JWT
     const token = generateToken(user._id);
 
@@ -195,6 +173,16 @@ exports.login = async (req, res) => {
         email: user.email,
         contact: user.contact,
         role: user.role,
+        gender: user.gender || "",
+        dateOfBirth: user.dateOfBirth || "",
+        bloodGroup: user.bloodGroup || "",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        pincode: user.pincode || "",
+        emergencyContact: user.emergencyContact || "",
+        insuranceProvider: user.insuranceProvider || "",
+        policyNumber: user.policyNumber || "",
       },
     });
   } catch (error) {
@@ -234,12 +222,110 @@ exports.getMe = async (req, res) => {
         email: user.email,
         contact: user.contact,
         role: user.role,
+        gender: user.gender || "",
+        dateOfBirth: user.dateOfBirth || "",
+        bloodGroup: user.bloodGroup || "",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        pincode: user.pincode || "",
+        emergencyContact: user.emergencyContact || "",
+        insuranceProvider: user.insuranceProvider || "",
+        policyNumber: user.policyNumber || "",
       },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: error.message || "Unable to fetch user",
+    });
+  }
+};
+
+// Update User Profile (Protected)
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const {
+      name,
+      contact,
+      gender,
+      dateOfBirth,
+      bloodGroup,
+      address,
+      city,
+      state,
+      pincode,
+      emergencyContact,
+      insuranceProvider,
+      policyNumber,
+    } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (name) user.name = name.trim();
+    if (contact) {
+      const cleanContact = String(contact).trim();
+      if (!/^\d{10}$/.test(cleanContact)) {
+        return res.status(400).json({
+          success: false,
+          message: "Contact must be a valid 10-digit number",
+        });
+      }
+      user.contact = cleanContact;
+    }
+
+    if (gender !== undefined) user.gender = gender;
+    if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
+    if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
+    if (address !== undefined) user.address = address;
+    if (city !== undefined) user.city = city;
+    if (state !== undefined) user.state = state;
+    if (pincode !== undefined) user.pincode = pincode;
+    if (emergencyContact !== undefined) user.emergencyContact = emergencyContact;
+    if (insuranceProvider !== undefined) user.insuranceProvider = insuranceProvider;
+    if (policyNumber !== undefined) user.policyNumber = policyNumber;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully!",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        contact: user.contact,
+        role: user.role,
+        gender: user.gender || "",
+        dateOfBirth: user.dateOfBirth || "",
+        bloodGroup: user.bloodGroup || "",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        pincode: user.pincode || "",
+        emergencyContact: user.emergencyContact || "",
+        insuranceProvider: user.insuranceProvider || "",
+        policyNumber: user.policyNumber || "",
+      },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "This contact number is already associated with another account",
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update profile",
     });
   }
 };

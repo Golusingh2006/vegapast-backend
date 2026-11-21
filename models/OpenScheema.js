@@ -31,6 +31,52 @@ const openSchema = new mongoose.Schema(
       enum: ["patient", "user", "doctor", "doctor/hospital", "admin"],
       default: "patient",
     },
+    // Patient Profile details
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other", ""],
+      default: "",
+    },
+    dateOfBirth: {
+      type: String,
+      default: "",
+    },
+    bloodGroup: {
+      type: String,
+      default: "",
+    },
+    address: {
+      type: String,
+      default: "",
+    },
+    city: {
+      type: String,
+      default: "",
+    },
+    state: {
+      type: String,
+      default: "",
+    },
+    pincode: {
+      type: String,
+      default: "",
+    },
+    emergencyContact: {
+      type: String,
+      default: "",
+    },
+    insuranceProvider: {
+      type: String,
+      default: "",
+    },
+    policyNumber: {
+      type: String,
+      default: "",
+    },
+    allergies: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
