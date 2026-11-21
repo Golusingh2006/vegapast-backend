@@ -219,7 +219,6 @@ const doctorHospitalSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "openSchema",
       required: [true, "User reference is required"],
-      unique: true,
     },
     registrationType: {
       type: String,

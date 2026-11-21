@@ -161,6 +161,10 @@ const hospitalSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "openSchema",
+    },
   },
   {
     timestamps: true,
@@ -169,5 +173,6 @@ const hospitalSchema = new mongoose.Schema(
 
 hospitalSchema.index({ city: 1 });
 hospitalSchema.index({ group: 1 });
+hospitalSchema.index({ user: 1 });
 
 module.exports = mongoose.model("Hospital", hospitalSchema);
